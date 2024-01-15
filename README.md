@@ -1,7 +1,7 @@
 # Learning
 
 <h1>Insert large record </h1>
-There is a result of my testing inserting 1 million records to DB. The questions is how to insert this large records
+There is a result of my testing inserting 1 million records to DB. The question is how to insert these large records
 <h2>Insert by batch size</h2>
 
 bach_size = 10000
@@ -25,3 +25,6 @@ time = Benchmark.measure do
 end
 
 puts "Execution time: #{time.real} seconds"
+
+The result would be 29.77178999991156 seconds. This is not bad. But if the client said: Heys, Do you have other way to do it? Do not answer them let increase the batch size 😄.
+Now let's dive into other solution
