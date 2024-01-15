@@ -140,5 +140,72 @@ Time: 237.68
 Memory: 3.23 MB
 
 
+<h2>Using load local infile</h2>
+
+require 'benchmark'
+require 'csv'
+
+def split_csv_file(file_path, batch_size)
+  file_number = 1
+  row_count = 0
+  output_file = nil
+  Dir.mkdir("temp")
+
+  CSV.foreach(file_path, headers: true) do |row|
+    if row_count % batch_size == 0
+      puts "write #{row_count} records to temp/output_#{file_number}.csv"
+      output_file = File.open("temp/output_#{file_number}.csv", 'w')
+      output_file.puts(row.headers.join(',')) if row_count == 0
+      file_number += 1
+    end
+
+    output_file.puts(row.fields.join(','))
+
+    row_count += 1
+  end
+
+  output_file.close if output_file
+end
+
+batch_size = 100_000
+limit_record = 1_000_000
+
+file_path = 'sample.csv'
+client = Client.first
+infections = []
+
+memory_command = "ps -o rss= -p #{Process.pid}"
+memory_before = %x(#{memory_command}).to_i
+time = Benchmark.realtime do
+  # split_csv_file(file_path, batch_size)
+  csv_files = Dir.glob(File.join("temp", '*.csv'))
+  csv_files.each do |csv_file|
+    values = []
+    puts "entry", csv_file
+    sql = <<-SQL
+      LOAD DATA LOCAL INFILE "#{csv_file}"
+      INTO TABLE test
+      FIELDS TERMINATED BY ',' ENCLOSED BY '"'
+      LINES TERMINATED BY '\n'
+      IGNORE 1 ROWS;
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql)
+  end
+end
+
+puts "Time: #{time.round(2)}"
+memory_after = %x(#{memory_command}).to_i
+puts "Memory: #{((memory_after - memory_before) / 1024.0).round(2)} MB"
+
+
+For reading file into DB
+Time: 76.36
+Memory: 10.49 MB
+
+To split 1gb file into smaller file
+Time: 237.68
+Memory: 3.23 MB
+
 
 
