@@ -235,4 +235,11 @@ Sidekiq.configure_server do |config|
 end
 ```
 
+<h2> For monitor </h2>
+
+``
+require 'sidekiq/web'        
+mount Sidekiq::Web => "/sidekiq"        
+``
+
 Finally, create worker app/workers/...
