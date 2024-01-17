@@ -207,5 +207,32 @@ To split 1gb file into smaller file
 Time: 237.68
 Memory: 3.23 MB
 
+```
+<h1>Install sidekiq</h1>
+<h2>Add gem</h2>
 
+```
+gem 'sidekiq'
+gem 'sidekiq-scheduler'
+```
+<h2>Add config/sidekiq_schedule.yml</h2>
 
+```
+every_minute_job:
+  cron: "5 * * * *"   # Runs every minute
+  class: "MyWorker"   # Your Sidekiq worker class
+```
+
+<h2>Add sidekiq initalizer</h2>
+
+```
+Sidekiq.configure_server do |config|
+  config.redis = { url: 'redis://localhost:6379/0' }
+  config.on(:startup) do
+    Sidekiq.schedule = YAML.load_file(File.expand_path('../../sidekiq_schedule.yml', __FILE__))
+    Sidekiq::Scheduler.reload_schedule!
+  end
+end
+```
+
+Finally, create worker app/workers/...
